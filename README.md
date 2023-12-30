@@ -1,2 +1,2 @@
 # Deep Learning Data Engine
-Data creation api for deep learning model training
+Data creation api for deep learning model training. This is the open source version of my personal data engine I use for all my deep learning projects. been working on this for 2+ years now so figured now is the time. this is a watered down version I removed all pipelining and code to use models in production setting. basically this for small data creation projects if you are interested in creating datasets at scale email me :)
