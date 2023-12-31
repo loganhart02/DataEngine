@@ -4,7 +4,7 @@ from typing import Optional
 from .utils import download_kaggle_dataset, download_url, extract_archive, async_download_urls
 
 
-def download_and_extract(out_path: str, url: str):
+def download_and_extract(url: str, out_path: str = None):
     """
     Downloads a file from a given URL and extracts it into a specified output path.
 
@@ -12,16 +12,18 @@ def download_and_extract(out_path: str, url: str):
     out_path (str): The path to the directory where the downloaded file will be saved and extracted.
     url (str): The URL of the file to be downloaded.
     """
+    if out_path is None:
+        out_path = os.path.expanduser('~/.local/share/dataengine')
     os.makedirs(out_path, exist_ok=True)
     print(f" > Downloading {url}...")
     download_url(url, out_path)
     basename = os.path.basename(url)
     archive = os.path.join(out_path, basename)
     print(f" > Extracting {archive} file...")
-    extract_archive(archive)
+    return extract_archive(archive)
     
     
-def download_ljspeech(out_path: str):
+def download_ljspeech(out_path: str = None):
     """
     Downloads the LJ Speech dataset into a specified output path.
     https://keithito.com/LJ-Speech-Dataset/
@@ -30,10 +32,10 @@ def download_ljspeech(out_path: str):
     out_path (str): The path to the directory where the dataset will be saved and extracted.
     """
     url = "https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2"
-    download_and_extract(out_path, url)
+    return download_and_extract(url, out_path)
     
 
-def download_daps(out_path: str):
+def download_daps(out_path: str = None):
     """
     Downloads the DAPS dataset into a specified output path.
     https://zenodo.org/records/4660670
@@ -42,10 +44,10 @@ def download_daps(out_path: str):
     out_path (str): The path to the directory where the dataset will be saved and extracted.
     """
     url = "https://zenodo.org/records/4660670/files/daps.tar.gz?download=1"
-    download_and_extract(out_path, url)
+    return download_and_extract(url, out_path)
     
 
-def download_thorsten_de(out_path: str):
+def download_thorsten_de(out_path: str = None):
     """
     Downloads the Thorsten German Speech dataset into a specified output path.
     https://www.openslr.org/resources/95
@@ -54,10 +56,10 @@ def download_thorsten_de(out_path: str):
     out_path (str): The path to the directory where the dataset will be saved and extracted.
     """
     url = "https://www.openslr.org/resources/95/thorsten-de_v02.tgz"
-    download_and_extract(out_path, url)
+    return download_and_extract(url, out_path)
     
 
-def download_tweb(out_path: str):
+def download_tweb(out_path: str ):
     """
     Downloads the World English Bible Speech dataset from Kaggle into a specified output path.
 
@@ -68,10 +70,10 @@ def download_tweb(out_path: str):
     This function assumes the presence of `download_kaggle_dataset` function 
     which handles the downloading of datasets from Kaggle.
     """
-    download_kaggle_dataset("bryanpark/the-world-english-bible-speech-dataset", "TWEB", out_path)
+    return download_kaggle_dataset("bryanpark/the-world-english-bible-speech-dataset", "TWEB", out_path)
     
     
-def download_tedlium(out_path: str):
+def download_tedlium(out_path: str = None):
     """
     Downloads the TED-LIUM dataset into a specified output path.
     https://www.openslr.org/51/
@@ -80,10 +82,10 @@ def download_tedlium(out_path: str):
     out_path (str): The path to the directory where the dataset will be saved and extracted.
     """
     url = "https://www.openslr.org/resources/51/TEDLIUM_release-3.tgz"
-    download_and_extract(out_path, url)
+    return download_and_extract(url, out_path)
     
 
-def download_hifi_tts(out_path: str):
+def download_hifi_tts(out_path: str = None):
     """
     Hi-Fi Multi-Speaker English TTS Dataset (Hi-Fi TTS) is a multi-speaker English dataset.
     https://www.openslr.org/resources/109/
@@ -92,10 +94,10 @@ def download_hifi_tts(out_path: str):
     out_path (str): The path to the directory where the dataset will be saved and extracted.
     """
     url = "https://www.openslr.org/resources/109/hi_fi_tts_v0.tar.gz"
-    download_and_extract(out_path, url)
+    return download_and_extract(url, out_path)
     
 
-def download_libri_light(out_path: str, size: str = "small"):
+def download_libri_light(out_path: str = None, size: str = "small"):
     url_dict = {
         "small": "https://dl.fbaipublicfiles.com/librilight/data/small.tar",
         "medium": "https://dl.fbaipublicfiles.com/librilight/data/medium.tar",
@@ -103,10 +105,10 @@ def download_libri_light(out_path: str, size: str = "small"):
         "duplicated": "https://dl.fbaipublicfiles.com/librilight/data/duplicate.tar"
     }
     print(f" > Downloading {size}...")
-    download_and_extract(out_path, url_dict[size])
+    return download_and_extract(url_dict[size], out_path)
     
     
-def download_vctk(path: str, use_kaggle: Optional[bool] = False):
+def download_vctk(out_path: str, use_kaggle: Optional[bool] = False):
     """Download and extract VCTK dataset.
 
     Args:
@@ -115,14 +117,14 @@ def download_vctk(path: str, use_kaggle: Optional[bool] = False):
         use_kaggle (bool, optional): Downloads vctk dataset from kaggle. Is generally faster. Defaults to False.
     """
     if use_kaggle:
-        download_kaggle_dataset("mfekadu/english-multispeaker-corpus-for-voice-cloning", "VCTK", path)
+        download_kaggle_dataset("mfekadu/english-multispeaker-corpus-for-voice-cloning", "VCTK", out_path)
     else:
         url = "https://datashare.ed.ac.uk/bitstream/handle/10283/3443/VCTK-Corpus-0.92.zip"
-        download_and_extract(path, url)
+        return download_and_extract(url, out_path)
     
     
 def download_libri_tts(
-    path: str, 
+    out_path: str = None, 
     subset: Optional[str] = "all", 
     async_download: Optional[bool] = False,
     download_libri_tts_r: Optional[bool] = False
@@ -156,21 +158,20 @@ def download_libri_tts(
             "libri-tts-test-other": "http://www.openslr.org/resources/60/test-other.tar.gz",
         }
 
-    os.makedirs(path, exist_ok=True)
     if subset == "all":
         if async_download:
             print(" > Downloading all subsets asynchronously...")
-            async_download_urls(subset_dict, path)
+            async_download_urls(subset_dict, out_path)
         else:
             for sub, val in subset_dict.items():
                 print(f" > Downloading {sub}...")
-                download_and_extract(path, val)
+                return download_and_extract(val, out_path)
         print(" > All subsets downloaded")
     else:
-        download_and_extract(path, subset_dict[subset])
+        return download_and_extract(subset_dict[subset], out_path)
         
         
-def download_mailabs(path: str, language: str = "all", async_download: Optional[bool] = False):
+def download_mailabs(out_path: str = None, language: str = "all", async_download: Optional[bool] = False):
     """Download and extract Mailabs dataset.
 
     Args:
@@ -188,14 +189,14 @@ def download_mailabs(path: str, language: str = "all", async_download: Optional[
     if language == "all":
         if async_download:
             print(" > Downloading all languages asynchronously...")
-            async_download_urls(language_dict, path)
+            async_download_urls(language_dict, out_path)
         else:
             for lang, url in language_dict.items():
                 print(f" > Downloading {lang}...")
-                download_and_extract(path, url)
+                return download_and_extract(url, out_path)
     else:
         url = language_dict[language]
-        download_and_extract(path, url)
+        return download_and_extract(url, out_path)
         
         
 def download_mls(out_path: str, download_compressed: bool = False, language: str = "all", async_download: bool = False):
@@ -221,9 +222,9 @@ def download_mls(out_path: str, download_compressed: bool = False, language: str
             for lang, urls in url_dict.items():
                 print(f" > Downloading {lang}...")
                 if download_compressed:
-                    download_and_extract(out_path, urls[1])
+                   return download_and_extract(out_path, urls[1])
                 else:
-                    download_and_extract(out_path, urls[0])
+                    return download_and_extract(out_path, urls[0])
         print(" > All languages downloaded")
     
     else:
@@ -231,5 +232,5 @@ def download_mls(out_path: str, download_compressed: bool = False, language: str
             url = url_dict[language][-1]
         else:
             url = url_dict[language][0]
-        download_and_extract(out_path, url)
+        return download_and_extract(out_path, url)
         

@@ -16,6 +16,25 @@ from typing import Any, Iterable, List, Optional
 from torch.utils.model_zoo import tqdm
 
 
+def get_the_directory(base_path, full_path):
+    """
+    Extracts the base path and the first subdirectory from the given path.
+
+    Parameters:
+    full_path (str): The full path from which to extract the base path and first subdirectory.
+
+    Returns:
+    str: The base path and the first subdirectory, if available.
+    """
+    base_path = "/home/logan/.local/share/dataengine"
+    if full_path.startswith(base_path):
+        remaining_path = full_path[len(base_path):].strip("/")
+        first_subdirectory = remaining_path.split(os.sep, 1)[0]
+        return os.path.join(base_path, first_subdirectory)
+    else:
+        raise ValueError("The provided path does not start with the expected base path.")
+    
+
 def stream_url(
     url: str, start_byte: Optional[int] = None, block_size: int = 32 * 1024, progress_bar: bool = True
 ) -> Iterable:
@@ -159,6 +178,7 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, overwrite: bo
             files = []
             for file_ in tar:  # type: Any
                 file_path = os.path.join(to_path, file_.name)
+                print(file_.name)
                 if file_.isfile():
                     files.append(file_path)
                     if os.path.exists(file_path):
@@ -166,7 +186,7 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, overwrite: bo
                         if not overwrite:
                             continue
                 tar.extract(file_, to_path)
-            return files
+        return get_the_directory(to_path, files[0])
     except tarfile.ReadError:
         pass
 
@@ -181,7 +201,7 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, overwrite: bo
                     if not overwrite:
                         continue
                 zfile.extract(file_, to_path)
-        return files
+        return get_the_directory(to_path, files[0])
     except zipfile.BadZipFile:
         pass
 
@@ -203,6 +223,7 @@ def download_kaggle_dataset(dataset_path: str, dataset_name: str, output_path: s
         kaggle.api.authenticate()
         print(f"""\nDownloading {dataset_name}...""")
         kaggle.api.dataset_download_files(dataset_path, path=data_path, unzip=True)
+        return data_path
     except OSError:
         print(
             f"""[!] in order to download kaggle datasets, you need to have a kaggle api token stored in your {os.path.join(expanduser('~'), '.kaggle/kaggle.json')}"""
@@ -216,7 +237,7 @@ def async_download_urls(url_dict, path):
         basename = os.path.basename(val)
         archive = os.path.join(path, basename)
         print(f" > Extracting {archive} file...")
-        extract_archive(archive)
+        _ = extract_archive(archive)
         progress_list.append(1)
         
     with Manager() as manager:
