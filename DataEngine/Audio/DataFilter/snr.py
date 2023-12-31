@@ -1,4 +1,5 @@
 # credit: https://gist.github.com/johnmeade/d8d2c67b87cda95cd253f55c21387e75
+import librosa
 import numpy as np
 
 def wada_snr(wav):
@@ -11,6 +12,7 @@ def wada_snr(wav):
     #   https://labrosa.ee.columbia.edu/projects/snreval/#9
 
     # init
+    wav, _ = librosa.load(wav, sr=None)
     eps = 1e-10
     # next 2 lines define a fancy curve derived from a gamma distribution -- see paper
     db_vals = np.arange(-20, 101)

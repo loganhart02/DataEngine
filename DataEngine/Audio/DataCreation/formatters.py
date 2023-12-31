@@ -41,8 +41,7 @@ class LjSpeech:
             print("Done!")
         
         for row in tqdm(df_dict):
-            audio, _ = librosa.load(row["audio_file"], sr=None)
-            row["snr"] = wada_snr(audio)
+            row["snr"] = wada_snr(row["audio_file"])
             
         
 
