@@ -94,6 +94,32 @@ def download_hifi_tts(out_path: str):
     url = "https://www.openslr.org/resources/109/hi_fi_tts_v0.tar.gz"
     download_and_extract(out_path, url)
     
+
+def download_libri_light(out_path: str, size: str = "small"):
+    url_dict = {
+        "small": "https://dl.fbaipublicfiles.com/librilight/data/small.tar",
+        "medium": "https://dl.fbaipublicfiles.com/librilight/data/medium.tar",
+        "large": "https://dl.fbaipublicfiles.com/librilight/data/large.tar",
+        "duplicated": "https://dl.fbaipublicfiles.com/librilight/data/duplicate.tar"
+    }
+    print(f" > Downloading {size}...")
+    download_and_extract(out_path, url_dict[size])
+    
+    
+def download_vctk(path: str, use_kaggle: Optional[bool] = False):
+    """Download and extract VCTK dataset.
+
+    Args:
+        path (str): path to the directory where the dataset will be stored.
+
+        use_kaggle (bool, optional): Downloads vctk dataset from kaggle. Is generally faster. Defaults to False.
+    """
+    if use_kaggle:
+        download_kaggle_dataset("mfekadu/english-multispeaker-corpus-for-voice-cloning", "VCTK", path)
+    else:
+        url = "https://datashare.ed.ac.uk/bitstream/handle/10283/3443/VCTK-Corpus-0.92.zip"
+        download_and_extract(path, url)
+    
     
 def download_libri_tts(
     path: str, 
@@ -206,3 +232,4 @@ def download_mls(out_path: str, download_compressed: bool = False, language: str
         else:
             url = url_dict[language][0]
         download_and_extract(out_path, url)
+        
