@@ -178,7 +178,6 @@ def extract_archive(from_path: str, to_path: Optional[str] = None, overwrite: bo
             files = []
             for file_ in tar:  # type: Any
                 file_path = os.path.join(to_path, file_.name)
-                print(file_.name)
                 if file_.isfile():
                     files.append(file_path)
                     if os.path.exists(file_path):
