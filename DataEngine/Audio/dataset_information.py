@@ -42,7 +42,7 @@ def get_audio_lengths(metadata_file: str):
 
 
 
-def create_information(
+def create_dataset_information(
     metadata_file: str, 
     dataset_name: str, 
     output_file: str,
