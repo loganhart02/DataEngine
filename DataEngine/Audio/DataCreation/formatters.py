@@ -5,6 +5,7 @@ from tqdm import tqdm
 from DataEngine.Audio.DataCollection.downloaders import download_and_extract
 from DataEngine.Audio.DataCreation.utils import convert_audio_file
 from DataEngine.Audio.DataFilter.snr import wada_snr
+from DataEngine.Audio.dataset_information import create_dataset_information
 
 
 class LjSpeech:
@@ -46,7 +47,13 @@ class LjSpeech:
         df = pd.DataFrame(df_dict)
         df.to_csv(os.path.join(self.path, "metadata.csv"), index=False, sep="|")
         
-        
+        create_dataset_information(
+            metadata_file=os.path.join(self.path, "metadata.csv"),
+            dataset_name="LJ Speech",
+            output_file=os.path.join(self.path, "dataset_information.md"),
+            original_source="https://keithito.com/LJ-Speech-Dataset/",
+            description="A public domain speech dataset consisting of 13,100 short audio clips of a single speaker reading passages from 7 non-fiction books. A transcription is provided for each clip."
+        )
         
     
         
