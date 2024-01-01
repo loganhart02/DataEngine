@@ -1,5 +1,4 @@
 import os
-import librosa
 import pandas as pd
 from tqdm import tqdm
 
@@ -40,12 +39,14 @@ class LjSpeech:
                 row["audio_file"] = convert_audio_file(row["audio_file"], sample_rate=None, audio_format=self.audio_format)
             print("Done!")
         
+        print("Calculating SNR...")
         for row in tqdm(df_dict):
             row["snr"] = wada_snr(row["audio_file"])
-            
-        
-
+                        
+        df = pd.DataFrame(df_dict)
         df.to_csv(os.path.join(self.path, "metadata.csv"), index=False, sep="|")
+        
+        
         
     
         

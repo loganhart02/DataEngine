@@ -1,0 +1,4 @@
+soundfile
+pandas
+tqdm
+librosa==0.10.1
