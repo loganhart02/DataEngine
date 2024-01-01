@@ -1,2 +1,2 @@
 # Deep Learning Data Engine
-Audio data creation is what I do professionally so for now I'm not open sourcing my audio engine. working on making a version that can help people format audio data without revealing all my secrets so I can still get a job lol.
+ata creation api for deep learning model training. This is the open source version of my personal data engine I use for all my deep learning projects. been working on this for 2+ years now so figured now is the time. this is a watered down version I removed all pipelining and code to use models in production setting. basically this for small data creation projects if you are interested in creating datasets at scale email me :)
