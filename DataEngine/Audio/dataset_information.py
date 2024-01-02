@@ -31,6 +31,7 @@ def get_audio_length(audio_path: str):
     
 
 def get_audio_lengths(metadata_file: str):
+    print("getting audio lengths...")
     df = pd.read_csv(metadata_file, sep="|")
     df_dict = df.to_dict(orient="records")
     for row in tqdm(df_dict):
@@ -38,6 +39,7 @@ def get_audio_lengths(metadata_file: str):
         row["audio_len"] = length
         row["sample_rate"] = sample_rate
     df = pd.DataFrame(df_dict)
+    print("Done!")
     return df 
 
 
@@ -53,50 +55,52 @@ def create_dataset_information(
     num_corrupt_files = len(df[df["audio_len"] == -1])
 
     markdown_content = f"""
-    # {dataset_name}
-    metadata file: {metadata_file}
+# {dataset_name}
+metadata file: `{metadata_file}`
     
-    ## Original Source
-    {original_source}
+## Original Source
+`{original_source}`
     
-    ## Description
-    {description}
+## Description
+{description}
     
-    ## Dataset Information
+## Dataset Information
     
-    ### Total Number of Samples
-    {len(df)}
+### Total Number of Samples
+`{len(df)}`
     
-    ### Number of Corrupt Files
-    {num_corrupt_files}
+### Number of Corrupt Files
+`{num_corrupt_files}`
     
-    ### Audio Durations
-    Total Duration: {df["audio_len"].sum() / 3600} Hours
-    Max Duration: {df["audio_len"].max()} Seconds
-    Min Duration: {df['audio_len'].min()} Seconds
-    Average Duration: {df["audio_len"].mean()} Seconds
+### Audio Durations
+Total Duration: `{df["audio_len"].sum() / 3600}` Hours
+
+Max Duration: `{df["audio_len"].max()}` Seconds
+
+Min Duration: `{df['audio_len'].min()}` Seconds
+
+Average Duration: `{df["audio_len"].mean()}` Seconds
     
-    ### Number of Speakers
-    {len(df["speaker"].unique()) if "speaker" in df.columns else 1}
+### Number of Speakers
+`{len(df["speaker"].unique()) if "speaker" in df.columns else 1}`
     
-    ### Number of Emotions
-    {len(df["emotion"].unique()) if "emotion" in df.columns else 0}
+### Number of Emotions
+`{len(df["emotion"].unique()) if "emotion" in df.columns else 0}`
     
-    ### Sample Rates
-    {df["sample_rate"].unique().tolist()}
+### Sample Rates
+`{df["sample_rate"].unique().tolist()}`
     
-    ### Audio Format
-    {os.path.splitext(df["audio_file"].iloc[0])[1]}
+### Audio Format
+`{os.path.splitext(df["audio_file"].iloc[0])[1]}`
     
-    ### Metadata Lables
-    {df.columns.tolist()}
+### Metadata Lables
+`{df.columns.tolist()}`
     
-    # TODOs
-    - [ ] Add more information
+# TODOs
+- [ ] Add more information
     
-    # Notes
-    - [ ] Add more notes
-    
+# Notes
+- [ ] Add more notes
     """
     with open(os.path.join(output_file, "dataset_card.md"), "w") as f:
         f.write(markdown_content)

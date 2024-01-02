@@ -1,5 +1,6 @@
 import os
 import re
+from tqdm import tqdm
 from subprocess import call, DEVNULL, STDOUT, check_output
 import soundfile as sf
 
@@ -71,3 +72,18 @@ def cut_audio(input_path: str, start: str, end: str, output_folder: str, output_
         stderr=STDOUT,
     )
     return output_path
+
+
+def match_textfiles_list(audio_files, text_files, samples_list=None): 
+    files_map = {}
+    for audio_file in tqdm(audio_files):
+        base_name = os.path.basename(audio_file).split(".")[0]
+        files_map[base_name] = {'audio_file': audio_file, 'text': None}
+    for text_file in text_files:
+        base_name = os.path.basename(text_file).split(".")[0]
+        if base_name in files_map:
+            with open(text_file, "r", encoding='utf-8') as text:
+                transcript = text.read().replace("\n", "")
+                files_map[base_name]['text'] = transcript
+    matched_files = [f for f in files_map.values() if f['text'] is not None]
+    return matched_files
