@@ -195,6 +195,103 @@ class LibriTts:
             original_source=source,
             description=description
         )
+        
+        
+class Mailabs:
+    def __init__(self, path: str = None, download: bool = False, language: str = "all", async_download: bool = False, audio_format: str = "wav"):
+        self.path = path
+        self.lang = language
+        self.async_download = async_download
+        self.audio_format = audio_format
+        
+        if self.path is None:
+            assert download, "If path is not specified, download must be True."
+        
+        if download:
+            self.path = self._download_mailabs()
+            
+        self._preprocess()
+        
+    def _download_mailabs(self):
+        """Download and extract Mailabs dataset.
+
+        Args:
+            path (str): Path to the directory where the dataset will be stored.
+
+            language (str): Language subset to download. Defaults to all .
+        """
+        if self.path is None:
+            self.path = os.path.expanduser('~/.local/share/dataengine/mailabs')
+            
+        language_dict = {
+            "en": "https://data.solak.de/data/Training/stt_tts/en_US.tgz",
+            "de": "https://data.solak.de/data/Training/stt_tts/de_DE.tgz",
+            "fr": "https://data.solak.de/data/Training/stt_tts/fr_FR.tgz",
+            "it": "https://data.solak.de/data/Training/stt_tts/it_IT.tgz",
+            "es": "https://data.solak.de/data/Training/stt_tts/es_ES.tgz",
+            "en-uk": "https://data.solak.de/data/Training/stt_tts/en_UK.tgz",
+            "uk": "https://data.solak.de/data/Training/stt_tts/uk_UK.tgz",
+            "ru": "https://data.solak.de/data/Training/stt_tts/ru_RU.tgz",
+            "pl": "https://data.solak.de/data/Training/stt_tts/pl_PL.tgz",
+        }
+        if self.lang == "all":
+            if self.async_download:
+                print(" > Downloading all languages asynchronously...")
+                async_download_urls(language_dict, self.path)
+            else:
+                for lang, url in language_dict.items():
+                    print(f" > Downloading {lang}...")
+                    return download_and_extract(url, self.path)
+        else:
+            url = language_dict[self.lang]
+            return download_and_extract(url, self.path)
+        
+    @staticmethod
+    def _reformat_metadata(metadata_path):
+        metadata_root = os.path.dirname(metadata_path)
+        df = pd.read_csv(metadata_path, sep="|", header=None)
+        headers = ["audio_file", "text", "text_normalized"]
+        df.columns = headers
+        df['audio_file'] = df['audio_file'].apply(lambda x: os.path.join(metadata_root, "wavs", f"{x}.wav"))
+        df['speaker'] = metadata_path.split("/")[-3]
+        df['lang'] = metadata_path.split("/")[-6]
+        df['gender'] = metadata_path.split("/")[-4]
+        df['book'] = metadata_path.split("/")[-2]
+        df_dict = df.to_dict(orient="records")
+        return df_dict
+    
+    def _preprocess(self):
+        files = glob(f"{self.path}/**/metadata.csv", recursive=True)
+        
+        all_metadata = []
+        for f in tqdm(files):
+            all_metadata.extend(self._reformat_metadata(f))
+            
+        if self.audio_format != "wav":
+            print(f"Converting audio files to {self.audio_format} format...")
+            for row in tqdm(all_metadata):
+                row["audio_file"] = convert_audio_file(row["audio_file"], sample_rate=None, audio_format=self.audio_format)
+            print("Done!")
+            
+        print("Calculating SNR...")
+        for row in tqdm(all_metadata):
+            try:
+                row["snr"] = wada_snr(row["audio_file"])
+            except Exception as e:
+                print(f"{e} for {row['audio_file']}")
+                row["snr"] = -1.0
+            
+        df = pd.DataFrame(all_metadata)
+        
+        df.to_csv(os.path.join(self.path, "metadata.csv"), index=False, sep="|")
+        
+        create_dataset_information(
+            metadata_file=os.path.join(self.path, "metadata.csv"),
+            dataset_name="Mailabs",
+            output_file=self.path,
+            original_source="https://www.caito.de/2019/01/03/the-m-ailabs-speech-dataset/",
+            description="The M-AILABS Speech Dataset is the first large dataset that we are providing free-of-charge, freely usable as training data for speech recognition and speech synthesis."
+        )
        
     
     

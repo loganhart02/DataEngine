@@ -22,18 +22,6 @@ def download_and_extract(url: str, out_path: str = None):
     print(f" > Extracting {archive} file...")
     return extract_archive(archive)
     
-    
-def download_ljspeech(out_path: str = None):
-    """
-    Downloads the LJ Speech dataset into a specified output path.
-    https://keithito.com/LJ-Speech-Dataset/
-
-    Parameters:
-    out_path (str): The path to the directory where the dataset will be saved and extracted.
-    """
-    url = "https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2"
-    return download_and_extract(url, out_path)
-    
 
 def download_daps(out_path: str = None):
     """
@@ -120,82 +108,6 @@ def download_vctk(out_path: str, use_kaggle: Optional[bool] = False):
         download_kaggle_dataset("mfekadu/english-multispeaker-corpus-for-voice-cloning", "VCTK", out_path)
     else:
         url = "https://datashare.ed.ac.uk/bitstream/handle/10283/3443/VCTK-Corpus-0.92.zip"
-        return download_and_extract(url, out_path)
-    
-    
-def download_libri_tts(
-    out_path: str = None, 
-    subset: Optional[str] = "all", 
-    async_download: Optional[bool] = False,
-    download_libri_tts_r: Optional[bool] = False
-):
-    """Download and extract libri tts dataset.
-
-    Args:
-        path (str): Path to the directory where the dataset will be stored.
-
-        subset (str, optional): Name of the subset to download. If you only want to download a certain
-        portion specify it here. Defaults to 'all'.
-    """
-    if download_libri_tts_r:
-        subset_dict = {
-            "libri-tts-clean-100": "https://www.openslr.org/resources/141/train_clean_100.tar.gz",
-            "libri-tts-clean-360": "http://www.openslr.org/resources/141/train-clean-360.tar.gz",
-            "libri-tts-other-500": "http://www.openslr.org/resources/141/train-other-500.tar.gz",
-            "libri-tts-dev-clean": "http://www.openslr.org/resources/141/dev-clean.tar.gz",
-            "libri-tts-dev-other": "http://www.openslr.org/resources/141/dev-other.tar.gz",
-            "libri-tts-test-clean": "http://www.openslr.org/resources/141/test-clean.tar.gz",
-            "libri-tts-test-other": "http://www.openslr.org/resources/141/test-other.tar.gz",
-        }
-    else:
-        subset_dict = {
-            "libri-tts-clean-100": "http://www.openslr.org/resources/60/train-clean-100.tar.gz",
-            "libri-tts-clean-360": "http://www.openslr.org/resources/60/train-clean-360.tar.gz",
-            "libri-tts-other-500": "http://www.openslr.org/resources/60/train-other-500.tar.gz",
-            "libri-tts-dev-clean": "http://www.openslr.org/resources/60/dev-clean.tar.gz",
-            "libri-tts-dev-other": "http://www.openslr.org/resources/60/dev-other.tar.gz",
-            "libri-tts-test-clean": "http://www.openslr.org/resources/60/test-clean.tar.gz",
-            "libri-tts-test-other": "http://www.openslr.org/resources/60/test-other.tar.gz",
-        }
-
-    if subset == "all":
-        if async_download:
-            print(" > Downloading all subsets asynchronously...")
-            async_download_urls(subset_dict, out_path)
-        else:
-            for sub, val in subset_dict.items():
-                print(f" > Downloading {sub}...")
-                return download_and_extract(val, out_path)
-        print(" > All subsets downloaded")
-    else:
-        return download_and_extract(subset_dict[subset], out_path)
-        
-        
-def download_mailabs(out_path: str = None, language: str = "all", async_download: Optional[bool] = False):
-    """Download and extract Mailabs dataset.
-
-    Args:
-        path (str): Path to the directory where the dataset will be stored.
-
-        language (str): Language subset to download. Defaults to english.
-    """
-    language_dict = {
-        "en": "https://data.solak.de/data/Training/stt_tts/en_US.tgz",
-        "de": "https://data.solak.de/data/Training/stt_tts/de_DE.tgz",
-        "fr": "https://data.solak.de/data/Training/stt_tts/fr_FR.tgz",
-        "it": "https://data.solak.de/data/Training/stt_tts/it_IT.tgz",
-        "es": "https://data.solak.de/data/Training/stt_tts/es_ES.tgz",
-    }
-    if language == "all":
-        if async_download:
-            print(" > Downloading all languages asynchronously...")
-            async_download_urls(language_dict, out_path)
-        else:
-            for lang, url in language_dict.items():
-                print(f" > Downloading {lang}...")
-                return download_and_extract(url, out_path)
-    else:
-        url = language_dict[language]
         return download_and_extract(url, out_path)
         
         
