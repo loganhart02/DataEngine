@@ -60,18 +60,6 @@ def download_tweb(out_path: str ):
     """
     return download_kaggle_dataset("bryanpark/the-world-english-bible-speech-dataset", "TWEB", out_path)
     
-    
-def download_tedlium(out_path: str = None):
-    """
-    Downloads the TED-LIUM dataset into a specified output path.
-    https://www.openslr.org/51/
-
-    Parameters:
-    out_path (str): The path to the directory where the dataset will be saved and extracted.
-    """
-    url = "https://www.openslr.org/resources/51/TEDLIUM_release-3.tgz"
-    return download_and_extract(url, out_path)
-    
 
 def download_hifi_tts(out_path: str = None):
     """

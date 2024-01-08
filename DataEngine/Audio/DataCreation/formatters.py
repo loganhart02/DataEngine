@@ -2,10 +2,12 @@ from glob import glob
 import os
 import pandas as pd
 from tqdm import tqdm
+from tqdm.contrib.concurrent import thread_map
 
 from DataEngine.Audio.DataCollection.downloaders import download_and_extract
 from DataEngine.Audio.DataCollection.utils import async_download_urls
-from DataEngine.Audio.DataCreation.utils import convert_audio_file, match_textfiles_list
+from DataEngine.Audio.Utils.audio_utils import cut_audio
+from DataEngine.Audio.Utils.generic_utils import convert_audio_file, get_timestamp_from_milliseconds, match_textfiles_list, search_for_text_files
 from DataEngine.Audio.DataFilter.snr import wada_snr
 from DataEngine.Audio.dataset_information import create_dataset_information
 
@@ -292,9 +294,116 @@ class Mailabs:
             original_source="https://www.caito.de/2019/01/03/the-m-ailabs-speech-dataset/",
             description="The M-AILABS Speech Dataset is the first large dataset that we are providing free-of-charge, freely usable as training data for speech recognition and speech synthesis."
         )
-       
-    
-    
         
-    
         
+class Tedlium:
+    def __init__(self, path: str = None, download: bool = False,  audio_format: str = "wav", workers: int = 8):
+        self.path = path
+        self.audio_format = audio_format
+        self.workers = workers
+        
+        if self.path is None:
+            assert download, "If path is not specified, download must be True."
+        
+        if download:
+            self.path = self._download_tedlium()
+            
+        self._preprocess()
+        
+    def _download_tedlium(self):
+        """
+        Downloads the TED-LIUM dataset into a specified output path.
+        https://www.openslr.org/51/
+
+        Parameters:
+        out_path (str): The path to the directory where the dataset will be saved and extracted.
+        """
+        url = "https://www.openslr.org/resources/51/TEDLIUM_release-3.tgz"
+        return download_and_extract(url, self.path)
+    
+    def _preprocess(self):
+        os.makedirs(os.path.join(self.path, "audio_segments"), exist_ok=True)
+        audio_files = glob(f"{self.path}/data/sph/*.sph", recursive=True)
+        audio_samples = [{"audio_file": f} for f in audio_files]
+        text_pairs = search_for_text_files(audio_samples, self.path, text_file_extension="stm", read_text_file=False)
+        for sample in text_pairs:
+            text_file = sample['text_file']
+            processed_lines = self._process_text_file(text_file)
+            sample['text_output'] = processed_lines
+        
+        all_samples = thread_map(self._process_audio_and_text, text_pairs, max_workers=self.workers, chunksize=self.workers // 2)
+        
+        total_samples = []
+        for samples in all_samples:
+            for y in samples:
+                total_samples.append(y)
+        
+        print("Calculating SNR...")
+        for row in tqdm(total_samples):
+            row["snr"] = wada_snr(row["audio_file"])
+                        
+        df = pd.DataFrame(total_samples)
+        df.to_csv(os.path.join(self.path, "metadata.csv"), index=False, sep="|")
+        
+        create_dataset_information(
+            metadata_file=os.path.join(self.path, "metadata.csv"),
+            dataset_name="TED-LIUM",
+            output_file=self.path,
+            original_source="https://www.openslr.org/51/",
+            description="TED-LIUM is an open source database for speech research, and especially targeted at speech recognition. It contains audio and aligned transcriptions for 1499 TED talks that are freely available on the TED website. The database is released under the Creative Commons license CC BY-NC-ND 3.0 (Attribution-NonCommercial-NoDerivs).",
+        )
+
+    @staticmethod
+    def _process_line(line):
+        metadata, text = line.split("<NA>")
+        metadata_list = metadata.strip().split(" ")
+        formatted_text = text.strip().replace("\n", "").replace("<unk>", "").strip()
+        metadata_list.append(formatted_text)
+        return metadata_list
+    
+    def _process_text_file(self, text_file):
+        with open(text_file, mode='r', encoding='utf-8') as file:
+            lines = file.readlines()
+        processed_lines = []
+        for line in lines:
+            processed_line = self._process_line(line)
+            processed_lines.append(processed_line)
+        return processed_lines
+    
+    @staticmethod
+    def seconds_to_milliseconds(seconds):
+        milliseconds = seconds * 1000
+        return int(milliseconds)
+    
+    def _process_stamp(self, stamp, audio):
+        start_seconds = float(stamp[-3])
+        end_seconds = float(stamp[-2])
+        text = stamp[-1]
+        
+        start_milliseconds = self.seconds_to_milliseconds(start_seconds)
+        end_milliseconds = self.seconds_to_milliseconds(end_seconds)
+        
+        start_timestamp = get_timestamp_from_milliseconds(start_milliseconds)
+        end_timestamp = get_timestamp_from_milliseconds(end_milliseconds)
+        
+        audio_clip = cut_audio(audio, start_timestamp, end_timestamp, output_folder=os.path.join(self.path, "audio_segments"))
+        
+        return {
+            "audio_file": audio_clip,
+            "text": text,
+            "start_timestamp": start_timestamp,
+            "end_timestamp": end_timestamp,
+            "orig_audio_file": audio
+        }
+        
+    def _process_audio_and_text(self, sample):
+        try:
+            temp_audio = convert_audio_file(sample['audio_file'], audio_format=self.audio_format)
+            stamps = sample['text_output']
+            processed_stamps = [self._process_stamp(stamp, temp_audio) for stamp in stamps]
+            os.remove(temp_audio)
+            return processed_stamps
+        except Exception as e:
+            print(f"Error processing sample: {sample}")
+            print(e)
+            return None
